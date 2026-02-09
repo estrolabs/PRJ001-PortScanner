@@ -12,6 +12,7 @@ def output(code, port):
         total_ports_open += 1
         print(f"Port {port} is OPEN")
     elif code == errno.ECONNREFUSED:
+        print(errno.ECONNREFUSED)
         total_ports_closed += 1
         print(f"Port {port} is CLOSED")
     else:
