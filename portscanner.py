@@ -1,60 +1,88 @@
 ###### MODULES ######
-# TODO: 1. MODULE: Import socket 
-# TODO: 2. MODULE: Import argparse 
-# TODO: 3. MODULE: Import errno 
+import socket, argparse, errno
+
+total_ports_closed_count = 0
+total_ports_unknown_count = 0
+total_ports_open_count = 0
 
 def scan_port(target, port, timeout):
-    # TODO: 13. LOGIC: Create socket
-    # TODO: 14. LOGIC: Set socket timeout
-    # TODO: 15 OUTPUT: Scanning Port {port}...
-    # TODO: 16. LOGIC: Connect to target on port from socket
-    # TODO: 17. LOGIC: Close Socket
-    # TODO: 17. LOGIC: Return connection error/status code
+    global total_ports_closed_count
+    global total_ports_unknown_count
+    global total_ports_open_count
 
-    pass
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(timeout)
+    print(f"Scanning Port {port}...")
+    res = sock.connect_ex((target, int(port)))
+    sock.close()
+
+    if res == 0:
+        total_ports_open_count += 1
+        print(f"{target}:{port} is OPEN\n")
+    elif res == errno.ECONNREFUSED:
+        total_ports_closed_count += 1
+        print(f"{target}:{port} is CLOSED\n")    
+    else:
+        total_ports_unknown_count += 1
+        print(f"{target}:{port} is UNKNOWN\n")    
 
 ###### ENTRY POINT ######
 def main():
+    global total_ports_closed_count
+    global total_ports_unknown_count
+    global total_ports_open_count
 
-    # TODO: 3.1. LOGIC: Variable - Total Ports Scanned
-    # TODO: 3.2. LOGIC: Variable - Total Ports Oppen
-    # TODO: 3.3. LOGIC: Variable - Total Ports Closed
-    # TODO: 3.4. LOGIC: Variable - Total Ports Unknown
+    total_ports_scanned_count = 0
 
-    # TODO: 4. OUTPUT: Welcome Banner / Header Message
-    # TODO: 5. INPUT: Initialise Arg Parser
-    # TODO: 6. INPUT:  Add arg target ip/domain
-    # TODO: 7. INPUT:  Add arg port(s) as -p / --port / --ports
-    # TODO: 8. INPUT:  Add arg timeout as -t / --timeout
-    # TODO: 9. INPUT: Get Consent Input
-    # TODO: 10. LOGIC: Check consent is aquired
-    # TODO: 11. LOGIC: Parse Ports from 50-100 / 80,443,22
-    # TODO: 12. LOGIC: Check if signular or multiple ports will be scanned
-    # TODO: 13. LOGIC: If signular call scan_port function 
+    print("========== ESTROLABS Port Scanner V(MVP) - 2026 ==========")
+    arg_parser = argparse.ArgumentParser(description="ESTROLABS Port Scanner V(MVP) - 2026")
+    arg_parser.add_argument("-t", "--target", help="IP or Domain Name / Host Name to scan")
+    arg_parser.add_argument("-p", "--port", "--ports", default=8000, help="Port(s) to scan")
+    arg_parser.add_argument("-i", "--timeout", default=3, help="Number of seconds to wait for a target to respond")
+    args = arg_parser.parse_args()
+    consent = input("Please ensure you have permission to scan this target and or the target is correctly inputed! (YES/NO)?\n> ")
+    if consent.lower() != "yes":
+        print("Sorry you did not verify consent therefore try again later!")
+        exit()
+        quit()
     
-    # TODO: 14. LOGIC: If multiple loop through each port 
-    # TODO: 14.1. LOGIC: Add 1 to count of total ports scanned
-    # TODO: 14.2. LOGIC: Call scan_port function
+    print("")
+
+    port_type = "s"
+    if "-" in args.port:
+        port_type = "r"
+    elif "," in args.port:
+        port_type = "m"
+    port_multiple = []
+    port_range_start = 0
+    port_range_end = 0
+    if port_type == "m":
+        for port in args.port.split(","):
+            port_multiple.append(port)
+    elif port_type == "r":
+        port_range_start = args.port.split("-")[0]
+        port_range_end = args.port.split("-")[1]
+
+    if port_type == "s":
+        total_ports_scanned_count += 1
+        scan_port(args.target, args.port, args.timeout)
     
-    # TODO: 15. LOGIC: Check if return code is 0
-    # TODO: 15.1. LOGIC: Add 1 to the count of total opened ports
-    # TODO: 15.2. OUTPUT: 127.0.0.1:80 is OPEN
+    if port_type == "m":
+        for port in port_multiple:
+            total_ports_scanned_count += 1
+            scan_port(args.target, port, args.timeout)
 
-    # TODO: 16. LOGIC: Check if return code is 1006
-    # TODO: 16.1. LOGIC: Add 1 to the count of total closed ports
-    # TODO: 16.2. OUTPUT: 127.0.0.1:80 is closed
+    if port_type == "r":
+        for port in range(int(port_range_start), int(port_range_end) + 1):
+            total_ports_scanned_count += 1
+            scan_port(args.target, port, args.timeout)
+    
+    print("---------- Port Scan COMPLETE - Stats ----------")
+    print(f"Total Ports Scanned: {total_ports_scanned_count}")
+    print(f"Total Ports Open: {total_ports_open_count}")
+    print(f"Total Ports Closed: {total_ports_closed_count}")
+    print(f"Total Ports Unknown: {total_ports_unknown_count}")
 
-    # TODO: 17. LOGIC: Check if return code is anything else
-    # TODO: 17.1. LOGIC: Add 1 to the count of total unknown ports
-    # TODO: 17.2. OUTPUT: 127.0.0.1:80 is unknown
-
-    # TODO: 18. OUTPUT: Section Banner of Port Stats
-    # TODO: 19. OUTPUT: Total Ports Scanned
-    # TODO: 20. OUTPUT: Total Ports Open
-    # TODO: 21. OUTPUT: Total Ports Closed
-    # TODO: 22. OUTPUT: Total Ports Unknown
-
-    pass
     
 if __name__ == "__main__":
     main()
